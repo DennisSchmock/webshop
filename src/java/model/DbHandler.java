@@ -6,6 +6,7 @@
 package model;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -27,31 +28,22 @@ import java.util.logging.Logger;
 public class DbHandler {
 
     public static void main(String[] args) {
-        DbHandler dbhandler = new DbHandler();
-        System.out.println(dbhandler.validateUser("daeniz", "111"));
-        dbhandler.loadUser("daeniz");
-        List<Topping> toppings = dbhandler.getToppings();
-        for (Topping topping : toppings) {
-            System.out.println(topping.name);
-            System.out.println(topping.id);
-            System.out.println(topping.price);
-
-        }
-
-        List<Bottom> bottoms = dbhandler.getBottoms();
+        
 
     }
-
+    
+    //Get user from DB and return a User object
     public User loadUser(String username) {
         User user = new User();
         String userName, fName, lName, street, city, email;
         int zip;
+        int cosId;
         Double balance = 0.00;
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/cupCakeShop", "root", "Ospekos_22");
 
-            String sqlString = "SELECT username,fname,lname,street,zip,city,email,balance FROM customers WHERE username = ?;";
+            String sqlString = "SELECT username,fname,lname,street,zip,city,email,balance,cos_id FROM customers WHERE username = ?;";
             PreparedStatement stmt = conn.prepareStatement(sqlString);
 
             stmt.setString(1, username);
@@ -65,7 +57,8 @@ public class DbHandler {
                 city = rs.getString("city");
                 email = rs.getString("email");
                 balance = rs.getDouble("balance");
-                return user = new User(userName, fName, lName, street, zip, city, email, balance);
+                cosId = rs.getInt("cos_id");
+                return user = new User(userName, fName, lName, street, zip, city, email, balance, cosId);
 
             }
         } catch (ClassNotFoundException ex) {
@@ -76,7 +69,8 @@ public class DbHandler {
         return user;
 
     }
-
+    
+    //Check if user exist and correct password
     public boolean validateUser(String userName, String pwd) {
 
         try {
@@ -104,7 +98,8 @@ public class DbHandler {
         return false;
 
     }
-
+    
+    //Get toppings from DB and return a List
     public List<Topping> getToppings() {
         List<Topping> toppings = new ArrayList<>();
         Map<String, List<Object>> map = new HashMap<>();
@@ -130,7 +125,8 @@ public class DbHandler {
         return toppings;
 
     }
-
+    
+    //Take bottoms and return them in a List
     public List<Bottom> getBottoms() {
         List<Bottom> bottoms = new ArrayList<>();
         Map<String, List<Object>> map = new HashMap<>();
@@ -157,20 +153,83 @@ public class DbHandler {
 
     }
 
-    private Map<String, List<Object>> resultSetToArrayList(ResultSet rs) throws SQLException {
-        ResultSetMetaData md = rs.getMetaData();
-        int columns = md.getColumnCount();
-        Map<String, List<Object>> map = new HashMap<>(columns);
-        for (int i = 1; i <= columns; ++i) {
-            map.put(md.getColumnName(i), new ArrayList<>());
-        }
-        while (rs.next()) {
-            for (int i = 1; i <= columns; ++i) {
-                map.get(md.getColumnName(i)).add(rs.getObject(i));
+
+
+    //Take contents from basket and put them in database.
+    public boolean checkOut(List<Cupcake> shoppingCart, User user) {
+        double balance = 0.00;
+        double totalPrice = getTotalPrice(shoppingCart);
+        int orderId = 0;
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/cupCakeShop", "root", "Ospekos_22");
+
+            String sqlString = "select balance from customers where cos_id=?;";
+            PreparedStatement stmt = conn.prepareStatement(sqlString);
+            stmt.setInt(1, user.getCosId());
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                balance = rs.getDouble("balance");
             }
+            if (balance - this.getTotalPrice(shoppingCart) < 0) {
+                //return false;
+            } else {
+                sqlString = "insert into orders(cos_id) values(?);";
+                stmt = conn.prepareStatement(sqlString);
+                stmt.setInt(1, user.getCosId());
+                stmt.execute();
+                sqlString = "SELECT LAST_INSERT_ID();";
+                rs = stmt.executeQuery(sqlString);
+                rs.next();
+                orderId = rs.getInt("LAST_INSERT_ID()");
+                sqlString = "insert into order_details (order_id,top_id,bot_id,qty) values(?,?,?,?);";
+                stmt = conn.prepareStatement(sqlString);
+                for (Cupcake cupcake : shoppingCart) {
+                    stmt.setInt(1, orderId);
+                    stmt.setInt(2, cupcake.getTopping().getId());
+                    stmt.setInt(3, cupcake.getBottom().getId());
+                    stmt.setInt(4, cupcake.getQty());
+                    stmt.execute();
+                }
+                sqlString = "update customers set balance = balance - ? where cos_id=?;";
+                stmt = conn.prepareStatement(sqlString);
+                stmt.setDouble(1, totalPrice);
+                stmt.setInt(2, user.getCosId());
+                stmt.execute();
+                
+                return true;
+
+            }
+        } catch (ClassNotFoundException ex) {
+            System.out.println(ex);
+            return false;
+        } catch (SQLException ex) {
+            System.out.println(ex);
+            return false;
+        }
+        return false;
+
+    }
+    
+    //Helper method for getting total price
+    private double getTotalPrice(List<Cupcake> shoppingCart) {
+        double totalPrice = 0.00;
+        for (Cupcake cup : shoppingCart) {
+            totalPrice = totalPrice + (cup.getPrice() * cup.getQty());
+        }
+        totalPrice = this.round(totalPrice, 2);
+        return totalPrice;
+    }
+    
+    //Helper method. Found on StackOverflow.
+    public double round(double value, int places) {
+        if (places < 0) {
+            throw new IllegalArgumentException();
         }
 
-        return map;
+        BigDecimal bd = new BigDecimal(value);
+        bd = bd.setScale(places, RoundingMode.HALF_UP);
+        return bd.doubleValue();
     }
 
 }

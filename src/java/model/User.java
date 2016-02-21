@@ -13,13 +13,14 @@ public class User {
     private String userName,fName,lName,street,city,email;
     private double balance;
     private int zip;
+    private int cosId;
 
    
     public User(){
         
     }
     
-    public User(String userName,String fName, String lName, String street, int zip, String city, String email,double balance){
+    public User(String userName,String fName, String lName, String street, int zip, String city, String email,double balance,int cosId){
         this.userName = userName;
         this.fName = fName;
         this.lName = lName;
@@ -27,6 +28,7 @@ public class User {
         this.city = city;
         this.email = email;
         this.balance = balance;
+        this.cosId = cosId;
     }
     
      public String getUserName() {
@@ -55,6 +57,20 @@ public class User {
 
     public double getBalance() {
         return balance;
+    }
+
+    /**
+     * @return the zip
+     */
+    public int getZip() {
+        return zip;
+    }
+
+    /**
+     * @return the cosId
+     */
+    public int getCosId() {
+        return cosId;
     }
     
     

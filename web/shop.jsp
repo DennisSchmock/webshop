@@ -6,32 +6,33 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c"  uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    </head>
-    <body>
-        <h1>Hello World!</h1>
-        Choose a topping:
+<%@include file="header.jsp" %><main>
+    <h1>Build your CupCake!</h1>
+    <section class="toppings">
         <form action="webshop" method="POST">
-            <select>
+            <table class="toppings"><tr><td colspan="3"><h2>Toppings</h2></tr>
+
                 <c:forEach var="Topping" items="${sessionScope.toppings}">
-                    <option value="${Topping.id}">${Topping.name}, ${Topping.price} kr.</option>
+                    <tr><td> <input type="radio" name="topping_choice" value="${Topping.id}" checked="checked" /></td><td>${Topping.name}</td><td>${Topping.price} kr.</td></tr>
                 </c:forEach>   
-            </select>
-            Choose a Bottom:
-            <select>
+            </table>
+
+            <table class="bottoms"><tr><td colspan="3"><h2>Bottoms</h2></tr>
                 <c:forEach var="Bottom" items="${sessionScope.bottoms}">
-                    <option value="${Bottom.id}">${Bottom.name}, ${Bottom.price} kr.</option>
+                    <tr><td><input type="radio" name="bottom_choice" value="${Bottom.id}" checked="checked"/></td><td>${Bottom.name}</td><td> ${Bottom.price} kr.</td><tr>
+
                 </c:forEach> 
-                
-            </select>
-                <input type="hidden" name="page" value="shop" />
-                <input type="submit" value="Make Cupcake" name="cupcake" />
+                    <tr><td></td><td colspan="2" align="right"><input type="hidden" name="page" value="shop" />
+                <input type="submit" value="Make Cupcake" name="cupcake" /></td>
+            </table>
+           
         </form>
 
-    </body>
-</html>
+    </section>
+</main>
+
+
+
+<%@include file="footer.jsp" %>
