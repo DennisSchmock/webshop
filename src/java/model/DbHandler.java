@@ -28,10 +28,9 @@ import java.util.logging.Logger;
 public class DbHandler {
 
     public static void main(String[] args) {
-        
 
     }
-    
+
     //Get user from DB and return a User object
     public User loadUser(String username) {
         User user = new User();
@@ -58,6 +57,7 @@ public class DbHandler {
                 email = rs.getString("email");
                 balance = rs.getDouble("balance");
                 cosId = rs.getInt("cos_id");
+                conn.close();
                 return user = new User(userName, fName, lName, street, zip, city, email, balance, cosId);
 
             }
@@ -65,11 +65,11 @@ public class DbHandler {
             Logger.getLogger(DbHandler.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
             Logger.getLogger(DbHandler.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        } 
         return user;
 
     }
-    
+
     //Check if user exist and correct password
     public boolean validateUser(String userName, String pwd) {
 
@@ -87,6 +87,7 @@ public class DbHandler {
                 conn.close();
                 return validated;
             }
+            
 
         } catch (SQLException ex) {
             Logger.getLogger(DbHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -98,7 +99,7 @@ public class DbHandler {
         return false;
 
     }
-    
+
     //Get toppings from DB and return a List
     public List<Topping> getToppings() {
         List<Topping> toppings = new ArrayList<>();
@@ -116,6 +117,7 @@ public class DbHandler {
                 Double price = rs.getDouble("top_price");
                 toppings.add(new Topping(name, price, id));
             }
+            conn.close();
 
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(DbHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -125,7 +127,7 @@ public class DbHandler {
         return toppings;
 
     }
-    
+
     //Take bottoms and return them in a List
     public List<Bottom> getBottoms() {
         List<Bottom> bottoms = new ArrayList<>();
@@ -143,6 +145,7 @@ public class DbHandler {
                 Double price = rs.getDouble("bot_price");
                 bottoms.add(new Bottom(name, price, id));
             }
+            conn.close();
 
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(DbHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -152,8 +155,6 @@ public class DbHandler {
         return bottoms;
 
     }
-
-
 
     //Take contents from basket and put them in database.
     public boolean checkOut(List<Cupcake> shoppingCart, User user) {
@@ -196,7 +197,8 @@ public class DbHandler {
                 stmt.setDouble(1, totalPrice);
                 stmt.setInt(2, user.getCosId());
                 stmt.execute();
-                
+                conn.close();
+
                 return true;
 
             }
@@ -210,7 +212,7 @@ public class DbHandler {
         return false;
 
     }
-    
+
     //Helper method for getting total price
     private double getTotalPrice(List<Cupcake> shoppingCart) {
         double totalPrice = 0.00;
@@ -220,7 +222,7 @@ public class DbHandler {
         totalPrice = this.round(totalPrice, 2);
         return totalPrice;
     }
-    
+
     //Helper method. Found on StackOverflow.
     public double round(double value, int places) {
         if (places < 0) {
@@ -232,4 +234,22 @@ public class DbHandler {
         return bd.doubleValue();
     }
 
+    public boolean refillUserCredits(User user, Double credits) {
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/cupCakeShop", "root", "Ospekos_22");
+
+            String sqlString = "update customers set balance=balance + ? where cos_id=? ;;";
+            PreparedStatement stmt = conn.prepareStatement(sqlString);
+            stmt.setDouble(1, credits);
+            stmt.setInt(2, user.getCosId());
+            stmt.execute();
+            conn.close();
+            return true;
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(DbHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+
+    }
 }

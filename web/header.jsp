@@ -191,6 +191,14 @@
                 padding: 5px;
                 
             }
+            .refill tr td{
+                height: 30;
+                text-align: left;
+                alignment-adjust: central;
+                    
+                
+            }
+            
 
 
         </style>
@@ -214,6 +222,7 @@
                 You have ${fn:length(cart)} cupcakes in your shopping cart.<br>
                 Total price: ${sessionScope.totalprice}
                 <c:if test="${sessionScope.loggedin==true}">
+                    <br>
                     <a href="webshop?page=cart">View Cart</a>
                 </c:if>
                 <c:if test="${sessionScope.loggedin!=true}">

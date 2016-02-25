@@ -12,7 +12,7 @@
 <main>
    
         <table class="shoppingcart"><tr><th>Topping</th><th>Bottom</th><th>Price</th><th>QTY</th><th>Total</th><th>subtract/add/remove</th>
-                 <c:if test="${fn:length(cart)>0}">   
+                <c:if test="${fn:length(cart)>0}">   
                 <c:forEach var="cart" items="${sessionScope.cart}"  varStatus="theCount">
                 
                 <tr><td>${cart.bottom.name} </td><td>${cart.topping.name}</td><td>${cart.price} kr.</td><td>${cart.qty} piece(s)</td><td> ${cart.price*cart.qty}</td>
@@ -31,7 +31,7 @@
             
             <tr><td colspan="6">
                           
-                    <c:if test="${sessionScope.notEnoughMoney==true}">Sorry, there is not enough money! Refill your credit here: <a href="http://google.dk">**MOCKUP LINK HERE**</a> </c:if>
+                    <c:if test="${sessionScope.notEnoughMoney==true}">Sorry, there is not enough money! Refill your credit here: <a href="?page=refill">Refill Credits</a> </c:if>
 
                     <form name="going out" action="webshop" method="POST">
                         <input type="hidden" name="page" value="checkout" />

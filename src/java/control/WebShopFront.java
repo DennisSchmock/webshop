@@ -50,19 +50,40 @@ public class WebShopFront extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         String url = "/index.jsp";
         String page = request.getParameter("page");
-       
+
         if (page == null) {
             page = "";
         }
+
+        if (page.equalsIgnoreCase("profile")) {
+            url = "/userprofile.jsp";
+
+        }
         if (page.equalsIgnoreCase("login")) {
             url = "/login.jsp";
+        }
+        if (page.equals("refill")) {
+            request.getSession().setAttribute("notEnoughMoney", null);
+            String creditsString = request.getParameter("refillcreds");
+            if (creditsString != null) {
+                double credits = Double.parseDouble(creditsString);
+                if (dbHandle.refillUserCredits(user, credits)) {
+                    
+                    request.getSession().setAttribute("payComplete", true);
+                    user = dbHandle.loadUser(user.getUserName());
+                    request.getSession().setAttribute("user", user);
+
+                }
+            }
+
+            url = "/refill.jsp";
         }
 
         request.getSession().setAttribute("cart", shoppingCart);
         if (page != null && page.equalsIgnoreCase("shop")) {
             url = showShop(request, response);
         }
-        
+
         if (page.equalsIgnoreCase("cart")) {
             if (request.getParameter("controlCart") != null) {
                 controlCart(request, response);
@@ -79,6 +100,7 @@ public class WebShopFront extends HttpServlet {
             request.setAttribute("user", null);
             request.setAttribute("loggedin", false);
             request.getSession().invalidate();
+            url = "/index.jsp";
             // logout(request, response);
         }
 
@@ -86,7 +108,7 @@ public class WebShopFront extends HttpServlet {
         if (login != null && login.equalsIgnoreCase("login")) {
             this.login(request, response);
         }
-        
+
         this.totalPrice = getTotalPrice(); //calculete total price of basket each time we d something.
         request.getSession().setAttribute("totalprice", this.totalPrice);
         RequestDispatcher dispatcher

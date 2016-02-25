@@ -12,7 +12,7 @@
 
   
 <h1>Welcome to Cupcake Heaven</h1>
-<a href="webshop?page=shop"><image src='http://kimberlysnyder.com/wp-content/uploads/2013/05/IMG_6155cs.jpg' alt='No worries'/></a>
+<image src='http://kimberlysnyder.com/wp-content/uploads/2013/05/IMG_6155cs.jpg' alt='No worries'/>
 
             
             
